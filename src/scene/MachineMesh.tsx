@@ -1,11 +1,13 @@
-import { useRef } from 'react';
+import { Suspense, useRef } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { PlacedMachine } from '../data/types';
 import { SPEC_BY_ID, STAGE_COLORS } from '../data/machineCatalog';
+import { MODEL_BY_SPEC } from '../data/machineModels';
 import { footprint } from '../data/geometry';
 import { useFactoryStore } from '../state/factoryStore';
+import { MachineModel } from './MachineModel';
 
 interface Props {
   machine: PlacedMachine;
@@ -28,6 +30,7 @@ export function MachineMesh({ machine, selected, isBottleneck }: Props) {
   const fp = footprint(spec, machine.rot);
   const h = spec.size.h;
   const color = STAGE_COLORS[spec.stage];
+  const model = MODEL_BY_SPEC[machine.specId];
 
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -56,22 +59,37 @@ export function MachineMesh({ machine, selected, isBottleneck }: Props) {
     if (!moved && press.wasSelected) select(null);
   };
 
+  const boxBody = (
+    <mesh position={[0, h / 2, 0]} castShadow>
+      <boxGeometry args={[fp.w, h, fp.d]} />
+      <meshStandardMaterial
+        color={isBottleneck ? '#ff5252' : color}
+        emissive={selected ? '#ffffff' : '#000000'}
+        emissiveIntensity={selected ? 0.25 : 0}
+        transparent
+        opacity={0.92}
+      />
+    </mesh>
+  );
+
   return (
-    <group position={[machine.x + fp.w / 2, 0, machine.z + fp.d / 2]}>
-      <mesh position={[0, h / 2, 0]} onPointerDown={onPointerDown} onPointerUp={onPointerUp} castShadow>
-        <boxGeometry args={[fp.w, h, fp.d]} />
-        <meshStandardMaterial
-          color={isBottleneck ? '#ff5252' : color}
-          emissive={selected ? '#ffffff' : '#000000'}
-          emissiveIntensity={selected ? 0.25 : 0}
-          transparent
-          opacity={0.92}
-        />
-      </mesh>
-      {selected && (
+    <group
+      position={[machine.x + fp.w / 2, 0, machine.z + fp.d / 2]}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+    >
+      {model ? (
+        // Fall back to the box while the GLB streams in.
+        <Suspense fallback={boxBody}>
+          <MachineModel url={model.url} spec={spec} rot={machine.rot} scale={model.scale} />
+        </Suspense>
+      ) : (
+        boxBody
+      )}
+      {(selected || isBottleneck) && (
         <lineSegments position={[0, h / 2, 0]}>
           <edgesGeometry args={[new THREE.BoxGeometry(fp.w + 0.04, h + 0.04, fp.d + 0.04)]} />
-          <lineBasicMaterial color="#ffffff" />
+          <lineBasicMaterial color={isBottleneck ? '#ff5252' : '#ffffff'} />
         </lineSegments>
       )}
       <Html position={[0, h + 0.3, 0]} center distanceFactor={18} occlude>
