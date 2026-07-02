@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FactoryCanvas } from './scene/FactoryCanvas';
 import { Toolbar } from './ui/Toolbar';
 import { SizePanel } from './ui/SizePanel';
@@ -7,12 +7,15 @@ import { InspectorPanel } from './ui/InspectorPanel';
 import { MetricsPanel } from './ui/MetricsPanel';
 import { StageLegend } from './ui/StageLegend';
 import { useFactoryStore } from './state/factoryStore';
+import { findFlowWarnings } from './metrics/flowCheck';
 
 export default function App() {
   const rotateSelected = useFactoryStore((s) => s.rotateSelected);
   const deleteMachine = useFactoryStore((s) => s.deleteMachine);
   const cancelPlacing = useFactoryStore((s) => s.cancelPlacing);
   const toolMode = useFactoryStore((s) => s.toolMode);
+  const machines = useFactoryStore((s) => s.machines);
+  const flowWarnings = useMemo(() => findFlowWarnings(machines), [machines]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -41,6 +44,14 @@ export default function App() {
         <main className="relative min-w-0 flex-1">
           <FactoryCanvas />
           <StageLegend />
+          {flowWarnings.length > 0 && (
+            <div className="pointer-events-none absolute bottom-10 left-1/2 max-w-[90%] -translate-x-1/2 rounded bg-amber-500/90 px-3 py-1 text-[11px] font-medium text-black shadow">
+              ⚠{' '}
+              {flowWarnings.length === 1
+                ? flowWarnings[0].message
+                : `${flowWarnings.length} placement issues — ${flowWarnings[0].message}`}
+            </div>
+          )}
           <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 rounded bg-black/50 px-3 py-1 text-[11px] text-gray-300">
             {toolMode === 'place'
               ? 'Click floor to place · Esc to cancel'

@@ -21,8 +21,14 @@ import qcUrl from '../model/keyence_vision_inspection.glb?url';
 import ocaUrl from '../model/kunshan_honma_oca_laminator.glb?url';
 import displayUrl from '../model/hanwha_smt_placement_machine.glb?url';
 import cameraUrl from '../model/asmpt_amicra_c05_bonder.glb?url';
+import batteryUrl from '../model/hanwha_momentum_battery_assembly_line.glb?url';
+import screwUrl from '../model/deprag_screwdriving_cell.glb?url';
 // Test
 import ictProbeTestUrl from '../model/ict_probe_test_machine.glb?url';
+import calibrationUrl from '../model/optofidelity_calibration_station.glb?url';
+import funcTestUrl from '../model/optofidelity_fusion_test_station.glb?url';
+// Packaging
+import packagingUrl from '../model/schubert_top_loading_cartoner.glb?url';
 
 export interface MachineModelDef {
   url: string;
@@ -42,7 +48,7 @@ export const MODEL_BY_SPEC: Record<string, MachineModelDef> = {
   lasermark: { url: laserMarkUrl },
   printer: { url: printerUrl },
   'placer-hs': { url: placerHsUrl },
-  'placer-fine': { url: placerFineUrl },
+  'placer-fine': { url: placerFineUrl, scale: 1.3 },
   reflow: { url: reflowUrl },
   coating: { url: coatingUrl },
   // Inspection
@@ -52,8 +58,14 @@ export const MODEL_BY_SPEC: Record<string, MachineModelDef> = {
   qc: { url: qcUrl },
   // Assembly
   oca: { url: ocaUrl },
-  display: { url: displayUrl },
+  display: { url: displayUrl, scale: 1.3 },
   camera: { url: cameraUrl },
+  battery: { url: batteryUrl, scale: 2.3 },
+  screw: { url: screwUrl, scale: 2 },
   // Test
   ict: { url: ictProbeTestUrl },
+  calibration: { url: calibrationUrl },
+  functest: { url: funcTestUrl },
+  // Packaging
+  packaging: { url: packagingUrl },
 };
