@@ -17,6 +17,19 @@ export interface MachineVendor {
   note?: string;
 }
 
+/** Researched throughput of a machine, in its native vendor metric. */
+export interface MachineThroughput {
+  /** Vendor-rated capacity per hour in native units, e.g. 100000 (CPH). */
+  rated: number;
+  /** Native unit label, e.g. 'components/hr', 'boards/hr', 'phones/hr'. */
+  unit: string;
+  /** Native units consumed per finished phone at this step, e.g. 800 components. */
+  perPhone: number;
+  /** Datasheet URL, or 'estimate: <reasoning>'. */
+  source: string;
+  confidence: 'datasheet' | 'estimate';
+}
+
 /**
  * A catalog machine = the static spec of a piece of equipment.
  * Numbers are representative real-world ranges (see plan / research notes).
@@ -32,7 +45,12 @@ export interface MachineSpec {
   powerKw: number;
   /** Operators required to run the station (fractional = shared across stations). */
   operators: number;
-  /** Seconds to process one unit (its cycle time). Lower = faster. */
+  /** Researched native-unit capacity; cycleSeconds is derived from this. */
+  throughput: MachineThroughput;
+  /**
+   * Seconds to process one phone-equivalent at this station. DERIVED at catalog
+   * load from `throughput` (perPhone / rated * 3600) — never hand-set.
+   */
   cycleSeconds: number;
   /** Ordinal position in the canonical work-tree (used for flow lines + validation). */
   order: number;

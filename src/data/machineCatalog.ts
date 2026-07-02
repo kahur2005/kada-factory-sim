@@ -6,13 +6,16 @@ import type { MachineSpec, Stage } from './types';
  * Each station carries a `vendors` list of real machines (with manufacturer + model)
  * that perform that task, gathered from SMT/assembly equipment-maker datasheets and
  * industry references (June 2026). Numeric specs are typical midpoints of published
- * ranges; cycleSeconds approximates per-unit throughput at the station. The vendor
+ * ranges; cycleSeconds is derived from researched throughput. The vendor
  * models are illustrative references, not exact-config quotes.
  *
  * `order` encodes the canonical work-tree:
  *   SMT front-end (motherboard) -> back-end final assembly ("box build").
  */
-export const MACHINE_CATALOG: MachineSpec[] = [
+
+type RawSpec = Omit<MachineSpec, 'cycleSeconds'>;
+
+const RAW_CATALOG: RawSpec[] = [
   // --- Logistics / handoff ---
   {
     id: 'loader',
@@ -22,7 +25,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 0.7, d: 1.0, h: 1.2 },
     powerKw: 0.3,
     operators: 0,
-    cycleSeconds: 5,
+    throughput: {
+      rated: 720,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: magazine exchange ~5 s/board',
+      confidence: 'estimate',
+    },
     order: 0,
     description: 'Magazine loader/unloader that feeds bare or finished PCBs into the SMEMA line.',
     vendors: [
@@ -39,7 +48,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 0.5, d: 1.0, h: 0.9 },
     powerKw: 0.2,
     operators: 0,
-    cycleSeconds: 3,
+    throughput: {
+      rated: 1800,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: 0.5 m/s edge-belt transport, never limiting',
+      confidence: 'estimate',
+    },
     order: 1,
     description: 'Belt/rail segment linking stations. Adds reach but no processing.',
     vendors: [
@@ -58,7 +73,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.2, h: 1.5 },
     powerKw: 1.5,
     operators: 0.5,
-    cycleSeconds: 8,
+    throughput: {
+      rated: 450,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: ~8 s mark + index per board',
+      confidence: 'estimate',
+    },
     order: 2,
     description: 'Marks a unique data-matrix/serial on each board for traceability at line start.',
     vendors: [
@@ -75,7 +96,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.3, d: 1.0, h: 1.6 },
     powerKw: 2.5,
     operators: 1,
-    cycleSeconds: 8,
+    throughput: {
+      rated: 400,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: ~5 s core print cycle + transfer',
+      confidence: 'estimate',
+    },
     order: 3,
     description: 'Applies solder paste through a stencil onto the bare PCB. ~±15–20 µm alignment.',
     vendors: [
@@ -92,7 +119,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.2, h: 1.5 },
     powerKw: 1.5,
     operators: 0.5,
-    cycleSeconds: 10,
+    throughput: {
+      rated: 450,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: 3D SPI scan of phone-size board ~8 s',
+      confidence: 'estimate',
+    },
     order: 4,
     description: 'Inline 3D inspection of paste volume/registration before placement.',
     vendors: [
@@ -109,7 +142,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.4, d: 1.5, h: 1.5 },
     powerKw: 5,
     operators: 0.5,
-    cycleSeconds: 25,
+    throughput: {
+      rated: 100000,
+      unit: 'components/hr',
+      perPhone: 800,
+      source: 'estimate: realistic (non-optimum) CPH for modular high-speed placer',
+      confidence: 'estimate',
+    },
     order: 5,
     description: 'High-speed "chip shooter" placing tens of thousands of passives per hour.',
     vendors: [
@@ -127,7 +166,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.2, h: 1.5 },
     powerKw: 3,
     operators: 0.5,
-    cycleSeconds: 30,
+    throughput: {
+      rated: 25000,
+      unit: 'components/hr',
+      perPhone: 80,
+      source: 'estimate: IPC-condition CPH for fine-pitch/IC placer',
+      confidence: 'estimate',
+    },
     order: 6,
     description: 'Precision placer for ICs, BGAs and fine-pitch connectors.',
     vendors: [
@@ -144,7 +189,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 4.5, d: 1.0, h: 1.5 },
     powerKw: 18,
     operators: 0.5,
-    cycleSeconds: 30,
+    throughput: {
+      rated: 240,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: ~1.4 m/min conveyor, ~0.35 m board pitch',
+      confidence: 'estimate',
+    },
     order: 7,
     description: 'Multi-zone (8–20) oven that melts solder paste to bond components. Conveyorized.',
     vendors: [
@@ -162,7 +213,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.2, h: 1.5 },
     powerKw: 1.5,
     operators: 0.5,
-    cycleSeconds: 12,
+    throughput: {
+      rated: 360,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: 3D AOI scan ~10 s/board',
+      confidence: 'estimate',
+    },
     order: 8,
     description: 'Post-reflow automated optical inspection for solder/placement defects.',
     vendors: [
@@ -180,7 +237,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.2, d: 1.4, h: 1.6 },
     powerKw: 3,
     operators: 0.5,
-    cycleSeconds: 20,
+    throughput: {
+      rated: 150,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: inline AXI, partial BGA coverage ~24 s',
+      confidence: 'estimate',
+    },
     order: 9,
     description: 'Detects hidden defects under BGAs and shields that AOI cannot see.',
     vendors: [
@@ -198,7 +261,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.2, d: 1.3, h: 1.6 },
     powerKw: 2,
     operators: 0.5,
-    cycleSeconds: 25,
+    throughput: {
+      rated: 120,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: ICT incl. fixture handling ~30 s',
+      confidence: 'estimate',
+    },
     order: 10,
     description: 'Electrical in-circuit test of the populated board before final assembly.',
     vendors: [
@@ -216,7 +285,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.2, d: 1.3, h: 1.6 },
     powerKw: 2,
     operators: 0.5,
-    cycleSeconds: 22,
+    throughput: {
+      rated: 180,
+      unit: 'boards/hr',
+      perPhone: 1,
+      source: 'estimate: selective coat + cure index ~20 s',
+      confidence: 'estimate',
+    },
     order: 11,
     description: 'Selective adhesive/underfill dispense or protective conformal coating of the board.',
     vendors: [
@@ -235,7 +310,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.2, d: 1.2, h: 1.6 },
     powerKw: 2.5,
     operators: 1,
-    cycleSeconds: 30,
+    throughput: {
+      rated: 150,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: vacuum laminate + debubble cycle ~24 s',
+      confidence: 'estimate',
+    },
     order: 12,
     description: 'Vacuum-laminates the cover glass to the display with OCA and removes bubbles (autoclave).',
     vendors: [
@@ -252,7 +333,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.0, h: 1.4 },
     powerKw: 0.5,
     operators: 1,
-    cycleSeconds: 28,
+    throughput: {
+      rated: 130,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: cobot-assisted display mount ~28 s',
+      confidence: 'estimate',
+    },
     order: 13,
     description: 'Mounts the display module to the mid-frame (manual or cobot-assisted).',
     vendors: [
@@ -269,7 +356,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.0, h: 1.4 },
     powerKw: 0.5,
     operators: 1,
-    cycleSeconds: 28,
+    throughput: {
+      rated: 120,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: multi-module fit + flex connect ~30 s',
+      confidence: 'estimate',
+    },
     order: 14,
     description: 'Fits camera modules, speakers, mics and connects flex cables.',
     vendors: [
@@ -286,7 +379,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.0, h: 1.4 },
     powerKw: 0.8,
     operators: 1,
-    cycleSeconds: 28,
+    throughput: {
+      rated: 130,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: insert + adhesive bond ~28 s',
+      confidence: 'estimate',
+    },
     order: 15,
     description: 'Inserts and adhesive-bonds the battery pack into the housing.',
     vendors: [
@@ -303,7 +402,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.2, h: 1.4 },
     powerKw: 1.5,
     operators: 1,
-    cycleSeconds: 28,
+    throughput: {
+      rated: 140,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: ~12 screws @ ~1.6 s + handling',
+      confidence: 'estimate',
+    },
     order: 16,
     description: 'Automated/manual screwdriving and closing of the device housing.',
     vendors: [
@@ -320,7 +425,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.0, h: 1.4 },
     powerKw: 1,
     operators: 0.5,
-    cycleSeconds: 30,
+    throughput: {
+      rated: 80,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: multi-sensor cal ~45 s per station',
+      confidence: 'estimate',
+    },
     order: 17,
     description: 'Calibrates cameras, display, radios and sensors (gyro/accel/proximity).',
     vendors: [
@@ -337,7 +448,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.0, h: 1.4 },
     powerKw: 1,
     operators: 0.5,
-    cycleSeconds: 30,
+    throughput: {
+      rated: 60,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: boot + RF + audio + touch test ~60 s',
+      confidence: 'estimate',
+    },
     order: 18,
     description: 'Verifies boot, touch, audio, Wi-Fi/BT/LTE and other functions.',
     vendors: [
@@ -354,7 +471,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.0, d: 1.2, h: 1.4 },
     powerKw: 1.5,
     operators: 0.5,
-    cycleSeconds: 25,
+    throughput: {
+      rated: 240,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: vision cosmetic inspect ~15 s',
+      confidence: 'estimate',
+    },
     order: 19,
     description: 'Cosmetic and full-assembly inspection before packing.',
     vendors: [
@@ -371,7 +494,13 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     size: { w: 1.5, d: 1.5, h: 1.4 },
     powerKw: 1.5,
     operators: 1,
-    cycleSeconds: 28,
+    throughput: {
+      rated: 600,
+      unit: 'phones/hr',
+      perPhone: 1,
+      source: 'estimate: automated cartoner, ~6 s/box',
+      confidence: 'estimate',
+    },
     order: 20,
     description: 'Labels, boxes, seals and palletizes the finished phone.',
     vendors: [
@@ -381,6 +510,12 @@ export const MACHINE_CATALOG: MachineSpec[] = [
     ],
   },
 ];
+
+/** cycleSeconds derived from researched throughput: seconds per phone-equivalent. */
+export const MACHINE_CATALOG: MachineSpec[] = RAW_CATALOG.map((s) => ({
+  ...s,
+  cycleSeconds: Math.round((s.throughput.perPhone / s.throughput.rated) * 3600 * 10) / 10,
+}));
 
 export const SPEC_BY_ID: Record<string, MachineSpec> = Object.fromEntries(
   MACHINE_CATALOG.map((m) => [m.id, m]),
