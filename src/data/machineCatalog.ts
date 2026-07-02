@@ -173,7 +173,7 @@ const RAW_CATALOG: RawSpec[] = [
       unit: 'components/hr',
       perPhone: 80,
       source:
-        'https://smt.asmpt.com/en/products/placement-solutions/siplace-sx/ (derated ~54% from CP20-head 46,500 CPH optimum fine-pitch spec)',
+        'https://smt.asmpt.com/en/products/placement-solutions/siplace-sx/ (derated to ~54% of 46,500 CPH optimum fine-pitch spec)',
       confidence: 'datasheet',
     },
     order: 6,
