@@ -1,4 +1,5 @@
-import type { FactoryDoc } from '../data/types';
+import type { FactoryDoc, ProductionTarget } from '../data/types';
+import { DEFAULT_TARGET } from '../data/types';
 
 const KEY = 'kada-factory-sim:doc';
 
@@ -46,15 +47,26 @@ export function parseImported(text: string): FactoryDoc {
   return doc;
 }
 
-/** Coerce unknown JSON into a valid FactoryDoc, or null if unusable. */
+/** Coerce unknown JSON (v1 or v2) into a valid v2 FactoryDoc, or null if unusable. */
 function normalize(data: unknown): FactoryDoc | null {
   if (!data || typeof data !== 'object') return null;
   const d = data as Partial<FactoryDoc>;
   const floor = d.floor;
   if (!floor || typeof floor.width !== 'number' || typeof floor.depth !== 'number') return null;
   const machines = Array.isArray(d.machines) ? d.machines : [];
+  const t = d.target;
+  const target: ProductionTarget = {
+    phonesPerDay:
+      t && typeof t.phonesPerDay === 'number' && t.phonesPerDay >= 1
+        ? Math.round(t.phonesPerDay)
+        : DEFAULT_TARGET.phonesPerDay,
+    shiftHoursPerDay:
+      t && typeof t.shiftHoursPerDay === 'number' && t.shiftHoursPerDay >= 1 && t.shiftHoursPerDay <= 24
+        ? t.shiftHoursPerDay
+        : DEFAULT_TARGET.shiftHoursPerDay,
+  };
   return {
-    version: 1,
+    version: 2,
     floor: { width: floor.width, depth: floor.depth },
     machines: machines.filter(
       (m) =>
@@ -64,5 +76,6 @@ function normalize(data: unknown): FactoryDoc | null {
         typeof m.x === 'number' &&
         typeof m.z === 'number',
     ),
+    target,
   };
 }

@@ -79,9 +79,18 @@ export interface FloorConfig {
 
 export type ToolMode = 'select' | 'place' | 'delete';
 
+/** Demand the line is designed against; drives takt time. */
+export interface ProductionTarget {
+  phonesPerDay: number;
+  shiftHoursPerDay: number;
+}
+
+export const DEFAULT_TARGET: ProductionTarget = { phonesPerDay: 1000, shiftHoursPerDay: 8 };
+
 /** Versioned, serializable design document. */
 export interface FactoryDoc {
-  version: 1;
+  version: 2;
   floor: FloorConfig;
   machines: PlacedMachine[];
+  target: ProductionTarget;
 }

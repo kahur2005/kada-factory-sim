@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { FactoryDoc, FloorConfig, PlacedMachine, ToolMode } from '../data/types';
+import type { FactoryDoc, FloorConfig, PlacedMachine, ProductionTarget, ToolMode } from '../data/types';
+import { DEFAULT_TARGET } from '../data/types';
 import { rectInBounds, rectOf, rectsOverlap } from '../data/geometry';
 import { SPEC_BY_ID } from '../data/machineCatalog';
 import { loadFromLocal, saveToLocal } from '../persistence/storage';
@@ -18,12 +19,14 @@ interface FactoryState {
   placingSpecId: string | null;
   /** id of the machine being dragged, if any. */
   draggingId: string | null;
+  target: ProductionTarget;
 
   setDragging: (id: string | null) => void;
   setFloor: (floor: Partial<FloorConfig>) => void;
   startPlacing: (specId: string) => void;
   cancelPlacing: () => void;
   setToolMode: (mode: ToolMode) => void;
+  setTarget: (t: Partial<ProductionTarget>) => void;
 
   /** Attempts to place at grid pos; returns false if blocked (overlap / OOB). */
   tryPlace: (x: number, z: number) => boolean;
@@ -62,6 +65,7 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
   toolMode: 'select',
   placingSpecId: null,
   draggingId: null,
+  target: initial?.target ?? DEFAULT_TARGET,
 
   setDragging: (id) => set({ draggingId: id }),
   setFloor: (floor) => set((s) => ({ floor: { ...s.floor, ...floor } })),
@@ -70,6 +74,17 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
   cancelPlacing: () => set({ toolMode: 'select', placingSpecId: null }),
   setToolMode: (mode) =>
     set({ toolMode: mode, placingSpecId: mode === 'place' ? get().placingSpecId : null }),
+
+  setTarget: (t) =>
+    set((s) => {
+      const merged = { ...s.target, ...t };
+      return {
+        target: {
+          phonesPerDay: Math.max(1, Math.round(merged.phonesPerDay || 1)),
+          shiftHoursPerDay: Math.min(24, Math.max(1, merged.shiftHoursPerDay || 1)),
+        },
+      };
+    }),
 
   tryPlace: (x, z) => {
     const { placingSpecId, machines, floor } = get();
@@ -108,24 +123,26 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
 
   select: (id) => set({ selectedId: id }),
 
-  newDoc: () => set({ machines: [], selectedId: null, toolMode: 'select', placingSpecId: null }),
+  newDoc: () =>
+    set({ machines: [], selectedId: null, toolMode: 'select', placingSpecId: null, target: DEFAULT_TARGET }),
 
   loadDoc: (doc) =>
     set({
       floor: doc.floor,
       machines: doc.machines,
+      target: doc.target,
       selectedId: null,
       toolMode: 'select',
       placingSpecId: null,
     }),
 
   toDoc: () => {
-    const { floor, machines } = get();
-    return { version: 1, floor, machines };
+    const { floor, machines, target } = get();
+    return { version: 2, floor, machines, target };
   },
 }));
 
 // Autosave: persist floor + machines on every relevant change.
 useFactoryStore.subscribe((s) => {
-  saveToLocal({ version: 1, floor: s.floor, machines: s.machines });
+  saveToLocal({ version: 2, floor: s.floor, machines: s.machines, target: s.target });
 });
