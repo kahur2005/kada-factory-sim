@@ -1,5 +1,6 @@
 import type { PlacedMachine } from '../data/types';
-import { SPEC_BY_ID, MACHINE_CATALOG } from '../data/machineCatalog';
+import { SPEC_BY_ID } from '../data/machineCatalog';
+import { LINE_SPECS } from './lineModel';
 import { rectOf, type Rect } from '../data/geometry';
 
 /**
@@ -26,9 +27,7 @@ export interface FlowWarning {
 }
 
 // Non-logistics stations in process order, plus a rank lookup for O(1) checks.
-const FLOW = MACHINE_CATALOG.filter((s) => s.stage !== 'logistics').sort(
-  (a, b) => a.order - b.order,
-);
+const FLOW = LINE_SPECS.filter((s) => s.stage !== 'logistics');
 const RANK: Record<string, number> = {};
 FLOW.forEach((s, i) => {
   RANK[s.id] = i;
