@@ -13,9 +13,10 @@ export function FactoryCanvas() {
   const selectedId = useFactoryStore((s) => s.selectedId);
   const toolMode = useFactoryStore((s) => s.toolMode);
   const draggingId = useFactoryStore((s) => s.draggingId);
+  const target = useFactoryStore((s) => s.target);
 
   const center: [number, number, number] = [floor.width / 2, 0, floor.depth / 2];
-  const bottleneckId = deriveMetrics(machines, floor).bottleneckSpecId;
+  const bottleneckId = deriveMetrics(machines, floor, target).bottleneckSpecId;
   const rotateEnabled = toolMode === 'select' && !draggingId;
 
   return (

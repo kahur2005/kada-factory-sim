@@ -5,7 +5,8 @@ import { SPEC_BY_ID } from '../data/machineCatalog';
 export function MetricsPanel() {
   const machines = useFactoryStore((s) => s.machines);
   const floor = useFactoryStore((s) => s.floor);
-  const m = deriveMetrics(machines, floor);
+  const target = useFactoryStore((s) => s.target);
+  const m = deriveMetrics(machines, floor, target);
 
   const bottleneck = m.bottleneckSpecId ? SPEC_BY_ID[m.bottleneckSpecId] : null;
   const utilPct = Math.round(m.floorUtilization * 100);
