@@ -8,6 +8,8 @@ export function Toolbar() {
   const newDoc = useFactoryStore((s) => s.newDoc);
   const loadDoc = useFactoryStore((s) => s.loadDoc);
   const toDoc = useFactoryStore((s) => s.toDoc);
+  const showFlow = useFactoryStore((s) => s.showFlow);
+  const toggleFlow = useFactoryStore((s) => s.toggleFlow);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onImport = async (file: File | undefined) => {
@@ -33,6 +35,11 @@ export function Toolbar() {
           </ToolButton>
           <ToolButton active={toolMode === 'delete'} onClick={() => setToolMode('delete')}>
             Delete
+          </ToolButton>
+        </div>
+        <div className="flex overflow-hidden rounded ring-1 ring-edge">
+          <ToolButton active={showFlow} onClick={toggleFlow}>
+            Flow
           </ToolButton>
         </div>
         <Btn onClick={() => { if (confirm('Clear the current design?')) newDoc(); }}>New</Btn>

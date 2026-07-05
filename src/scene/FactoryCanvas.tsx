@@ -5,6 +5,7 @@ import { deriveMetrics } from '../metrics/deriveMetrics';
 import { FactoryFloor } from './FactoryFloor';
 import { MachineMesh } from './MachineMesh';
 import { PlacementController } from './PlacementController';
+import { FlowLines } from './FlowLines';
 
 export function FactoryCanvas() {
   const floor = useFactoryStore((s) => s.floor);
@@ -27,6 +28,7 @@ export function FactoryCanvas() {
       <directionalLight position={[10, 20, 8]} intensity={1.1} castShadow />
       <FactoryFloor />
       <PlacementController />
+      <FlowLines />
       {machines.map((m) => (
         <MachineMesh
           key={m.id}

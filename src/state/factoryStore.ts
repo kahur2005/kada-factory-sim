@@ -20,6 +20,9 @@ interface FactoryState {
   /** id of the machine being dragged, if any. */
   draggingId: string | null;
   target: ProductionTarget;
+  /** Show the material-flow overlay (transient UI state, not persisted). */
+  showFlow: boolean;
+  toggleFlow: () => void;
 
   setDragging: (id: string | null) => void;
   setFloor: (floor: Partial<FloorConfig>) => void;
@@ -66,6 +69,8 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
   placingSpecId: null,
   draggingId: null,
   target: initial?.target ?? DEFAULT_TARGET,
+  showFlow: true,
+  toggleFlow: () => set((s) => ({ showFlow: !s.showFlow })),
 
   setDragging: (id) => set({ draggingId: id }),
   setFloor: (floor) => set((s) => ({ floor: { ...s.floor, ...floor } })),
