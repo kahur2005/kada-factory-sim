@@ -29,7 +29,7 @@
 - Consumes: nothing new.
 - Produces: `MachineThroughput` type; `MachineSpec.throughput: MachineThroughput` (required); `MACHINE_CATALOG` entries now carry `throughput`, and each spec's `cycleSeconds` is **derived**: `round1(perPhone / rated * 3600)`. All existing consumers of `cycleSeconds` keep working unchanged.
 
-- [ ] **Step 1: Add the throughput type to `src/data/types.ts`**
+- [x] **Step 1: Add the throughput type to `src/data/types.ts`**
 
 Insert after the `MachineVendor` interface:
 
@@ -60,7 +60,7 @@ In `MachineSpec`, add the field and update the `cycleSeconds` doc comment:
   cycleSeconds: number;
 ```
 
-- [ ] **Step 2: Restructure `src/data/machineCatalog.ts` to derive `cycleSeconds`**
+- [x] **Step 2: Restructure `src/data/machineCatalog.ts` to derive `cycleSeconds`**
 
 Rename the literal array to `RAW_CATALOG` typed as `Omit<MachineSpec, 'cycleSeconds'>[]`, delete every hand-written `cycleSeconds` line, add a `throughput` block to every entry, and derive the exported catalog:
 
@@ -133,16 +133,16 @@ Example entry (apply the same shape to all 21; keep every other field as-is):
   },
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0, no output. (If it reports a missing `throughput` on any entry, you skipped one of the 21.)
 
-- [ ] **Step 4: Manual sanity check**
+- [x] **Step 4: Manual sanity check**
 
 Run `npm run dev`, open the app: metrics panel still renders, estimated output is now gated by `functest` (60 s → 60 units/hr with one of each). Bottleneck label reads "Functional Test Station" when a functest is placed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/data/types.ts src/data/machineCatalog.ts
@@ -161,7 +161,7 @@ git commit -m "feat: derive cycle times from researched machine throughput"
 - Consumes: `MachineThroughput` from Task 1.
 - Produces: catalog values with traceable sources; `docs/machine-research.md` notes. No type/shape changes — later tasks depend only on the shape.
 
-- [ ] **Step 1: Research each machine via WebSearch**
+- [x] **Step 1: Research each machine via WebSearch**
 
 For each catalog entry, search for the primary vendor's published rate using queries of the form `"<maker> <model> datasheet throughput"` / `"<maker> <model> CPH"` / `"<maker> <model> cycle time"`. Machines to research (primary vendor per catalog): Nutek NTM loader; Han's Laser HDZ-PCB100; ASMPT DEK TQ; Koh Young Zenith SPI; Yamaha YSM40R (CPH); ASMPT SIPLACE SX (CPH); Heller MK7 (conveyor speed); Omron VT-S530 AOI; Nordson Matrix AXI; Keysight i3070 ICT; Nordson ASYMTEK SL-940; OCA laminator cycle; DEPRAG screwdriving; OptoFidelity FUSION; Schubert TLM cartoner.
 
@@ -170,16 +170,16 @@ Rules:
 - Nothing published → keep the Task 1 estimate unchanged.
 - Do **not** change `perPhone` assumptions unless research contradicts them (e.g. component counts); if changed, update the reasoning text.
 
-- [ ] **Step 2: Write `docs/machine-research.md`**
+- [x] **Step 2: Write `docs/machine-research.md`**
 
 One table with a row per machine: `id | vendor/model referenced | rated (unit) | perPhone | confidence | source | notes`. Below the table, a short "Assumptions" section stating: 1 mainboard per phone; ~800 passives + ~80 ICs per mainboard; rates are per-station sustained rates, not burst optimums; logistics rates are transport, excluded from bottleneck math. Populate the table from the final catalog values (post-research).
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/data/machineCatalog.ts docs/machine-research.md
@@ -199,7 +199,7 @@ git commit -m "docs: verify machine throughput against vendor datasheets"
 - Consumes: nothing from earlier tasks.
 - Produces: `ProductionTarget { phonesPerDay: number; shiftHoursPerDay: number }`; `DEFAULT_TARGET` const; `FactoryDoc.version: 2` + `FactoryDoc.target: ProductionTarget`; store state `target: ProductionTarget` and action `setTarget(t: Partial<ProductionTarget>): void` (clamps: phonesPerDay ≥ 1 integer; shiftHoursPerDay in [1, 24]).
 
-- [ ] **Step 1: Types in `src/data/types.ts`**
+- [x] **Step 1: Types in `src/data/types.ts`**
 
 ```ts
 /** Demand the line is designed against; drives takt time. */
@@ -219,7 +219,7 @@ export interface FactoryDoc {
 }
 ```
 
-- [ ] **Step 2: Migration in `src/persistence/storage.ts`**
+- [x] **Step 2: Migration in `src/persistence/storage.ts`**
 
 Replace `normalize` (v1 docs have no `target`; inject defaults, clamp bad values):
 
@@ -260,7 +260,7 @@ function normalize(data: unknown): FactoryDoc | null {
 
 Update the import at the top: `import type { FactoryDoc, ProductionTarget } from '../data/types';` and `import { DEFAULT_TARGET } from '../data/types';`.
 
-- [ ] **Step 3: Store in `src/state/factoryStore.ts`**
+- [x] **Step 3: Store in `src/state/factoryStore.ts`**
 
 Add to imports: `ProductionTarget` (type) and `DEFAULT_TARGET` from `'../data/types'`. In `FactoryState` add:
 
@@ -316,16 +316,16 @@ useFactoryStore.subscribe((s) => {
 });
 ```
 
-- [ ] **Step 4: Type-check**
+- [x] **Step 4: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 5: Manual migration check**
+- [x] **Step 5: Manual migration check**
 
 Run `npm run dev` with an existing saved layout (v1 in localStorage): app loads it without error (target silently defaults). Export a file and confirm the JSON contains `"version": 2` and a `target` block.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/data/types.ts src/persistence/storage.ts src/state/factoryStore.ts
@@ -344,7 +344,7 @@ git commit -m "feat: FactoryDoc v2 with persisted production target"
 - Consumes: `MACHINE_CATALOG`, `SPEC_BY_ID`, `MachineSpec`, `PlacedMachine`.
 - Produces: `LineStep { spec: MachineSpec; machines: PlacedMachine[]; effCycleSeconds: number }`; `buildLine(machines: PlacedMachine[]): LineStep[]`; `LINE_SPECS: MachineSpec[]` (ordered chain membership: everything except conveyors — i.e. processing steps + loader).
 
-- [ ] **Step 1: Create `src/metrics/lineModel.ts`**
+- [x] **Step 1: Create `src/metrics/lineModel.ts`**
 
 ```ts
 import type { MachineSpec, PlacedMachine } from '../data/types';
@@ -393,7 +393,7 @@ export function buildLine(machines: PlacedMachine[]): LineStep[] {
 }
 ```
 
-- [ ] **Step 2: Point `flowCheck.ts` at the shared ordering**
+- [x] **Step 2: Point `flowCheck.ts` at the shared ordering**
 
 In `src/metrics/flowCheck.ts`, replace:
 
@@ -417,16 +417,16 @@ const FLOW = LINE_SPECS.filter((s) => s.stage !== 'logistics');
 
 (`FLOW` previously filtered logistics from `MACHINE_CATALOG` and sorted by `order`; `LINE_SPECS` is already sorted and only adds the loader, which this filter removes — behavior is identical.)
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 4: Manual regression check**
+- [x] **Step 4: Manual regression check**
 
 Run `npm run dev`: place a printer next to an AOI (skipping steps between) — the existing amber flow warning still appears, identical to before.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/metrics/lineModel.ts src/metrics/flowCheck.ts
@@ -447,7 +447,7 @@ git commit -m "feat: shared line model for flow chain and metrics"
 - Consumes: `buildLine` from Task 4; `rectOf` from `src/data/geometry`.
 - Produces: store fields `showFlow: boolean` (default `true`, transient — NOT in `FactoryDoc`) and `toggleFlow(): void`; `<FlowLines />` component (no props).
 
-- [ ] **Step 1: Store state**
+- [x] **Step 1: Store state**
 
 In `FactoryState` interface add:
 
@@ -464,7 +464,7 @@ In the store body add:
   toggleFlow: () => set((s) => ({ showFlow: !s.showFlow })),
 ```
 
-- [ ] **Step 2: Create `src/scene/FlowLines.tsx`**
+- [x] **Step 2: Create `src/scene/FlowLines.tsx`**
 
 ```tsx
 import { useMemo } from 'react';
@@ -536,11 +536,11 @@ function FlowSegment({ from, to }: { from: Vec3; to: Vec3 }) {
 }
 ```
 
-- [ ] **Step 3: Mount in `src/scene/FactoryCanvas.tsx`**
+- [x] **Step 3: Mount in `src/scene/FactoryCanvas.tsx`**
 
 Add `import { FlowLines } from './FlowLines';` and render `<FlowLines />` directly after `<PlacementController />`.
 
-- [ ] **Step 4: Toggle in `src/ui/Toolbar.tsx`**
+- [x] **Step 4: Toggle in `src/ui/Toolbar.tsx`**
 
 In `Toolbar`, read the state:
 
@@ -559,12 +559,12 @@ Add a button after the Select/Delete `ToolButton` group (before the `New` button
         </div>
 ```
 
-- [ ] **Step 5: Type-check**
+- [x] **Step 5: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 6: Manual check**
+- [x] **Step 6: Manual check**
 
 Run `npm run dev`:
 - Place loader → printer → reflow: cyan lines connect them in that order (loader→printer→reflow), cones point downstream, lines skip unplaced steps.
@@ -573,7 +573,7 @@ Run `npm run dev`:
 - Drag a machine: its lines follow live.
 - Toolbar "Flow" click hides/shows the overlay.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/scene/FlowLines.tsx src/scene/FactoryCanvas.tsx src/state/factoryStore.ts src/ui/Toolbar.tsx
@@ -593,7 +593,7 @@ git commit -m "feat: material-flow lines between line steps with toolbar toggle"
 - Consumes: `buildLine` (Task 4), `ProductionTarget` (Task 3).
 - Produces: `deriveMetrics(machines: PlacedMachine[], floor: FloorConfig, target: ProductionTarget): Metrics` with new `Metrics` fields `taktSeconds`, `outputPerDay`, `targetMet`, `balanceEfficiency`, `stations: StationAnalysis[]`, and exported `StationAnalysis { specId; short; copies; copiesNeeded; effCycleSeconds; utilization; delaySeconds; overTakt }`. Existing fields keep their exact names and meaning.
 
-- [ ] **Step 1: Rewrite `src/metrics/deriveMetrics.ts`**
+- [x] **Step 1: Rewrite `src/metrics/deriveMetrics.ts`**
 
 ```ts
 import type { FloorConfig, PlacedMachine, ProductionTarget } from '../data/types';
@@ -720,7 +720,7 @@ export function deriveMetrics(
 }
 ```
 
-- [ ] **Step 2: Update the two callers to pass `target`**
+- [x] **Step 2: Update the two callers to pass `target`**
 
 `src/scene/FactoryCanvas.tsx` — add the selector and argument:
 
@@ -737,16 +737,16 @@ export function deriveMetrics(
   const m = deriveMetrics(machines, floor, target);
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 4: Manual regression check**
+- [x] **Step 4: Manual regression check**
 
 Run `npm run dev`: existing metrics (machines / power / headcount / floor used / estimated output / bottleneck) all still display correct values; bottleneck highlight in the canvas unchanged.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/metrics/deriveMetrics.ts src/scene/FactoryCanvas.tsx src/ui/MetricsPanel.tsx
@@ -764,7 +764,7 @@ git commit -m "feat: takt, delay and line-balance analysis in derived metrics"
 - Consumes: `Metrics.stations` / `taktSeconds` / `outputPerDay` / `targetMet` / `balanceEfficiency` (Task 6); `target` + `setTarget` from the store (Task 3).
 - Produces: UI only.
 
-- [ ] **Step 1: Rewrite `src/ui/MetricsPanel.tsx`**
+- [x] **Step 1: Rewrite `src/ui/MetricsPanel.tsx`**
 
 ```tsx
 import { useFactoryStore } from '../state/factoryStore';
@@ -956,12 +956,12 @@ function UtilBar({ utilization, over }: { utilization: number; over: boolean }) 
 }
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `npm run lint`
 Expected: exit 0.
 
-- [ ] **Step 3: Manual check**
+- [x] **Step 3: Manual check**
 
 Run `npm run dev`:
 - Empty floor: no station table, no analysis rows; target inputs still visible and editable.
@@ -970,7 +970,7 @@ Run `npm run dev`:
 - Set phones/day to 100: most rows go green/blue, target met turns green.
 - Type junk (0, negative) into inputs: values clamp to ≥ 1; reload page: target persisted.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/ui/MetricsPanel.tsx
@@ -987,19 +987,19 @@ git commit -m "feat: production target inputs and station analysis table"
 
 **Interfaces:** none — documentation and end-to-end verification.
 
-- [ ] **Step 1: Update `CLAUDE.md`**
+- [x] **Step 1: Update `CLAUDE.md`**
 
 - In the **Derivation** section: `deriveMetrics(machines, floor, target)` now also returns takt/utilization/delay/balance `stations` analysis; add `lineModel.ts` (`buildLine`, `LINE_SPECS` — the single source of truth for "what is the line"; conveyors excluded, loader included; metrics use processing steps only).
 - In **Domain data**: `cycleSeconds` is derived from the researched `throughput` field (native vendor units + `perPhone` conversion) at catalog load; research notes live in `docs/machine-research.md`.
 - In **Views**: `FlowLines` overlay (fan-out/converge between consecutive placed steps, toolbar-toggleable).
 - In **Conventions**: `FactoryDoc` is now `version: 2` (adds `target`); keep the "bump version + migrate in `normalize`" rule.
 
-- [ ] **Step 2: Full verification pass**
+- [x] **Step 2: Full verification pass**
 
 Run: `npm run lint` → exit 0. Run: `npm run build` → completes without error.
 Then `npm run dev` and walk the whole feature: place a full line, watch flow lines, tweak targets, check the analysis table, toggle Flow, export + re-import the JSON (v2 round-trip), reload the page (autosave round-trip).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add CLAUDE.md docs/superpowers/plans/2026-07-02-flow-lines-line-analysis.md
